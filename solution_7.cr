@@ -1,12 +1,15 @@
 class Directory
+  @parent : Directory | Nil
+  @directories : Hash(String, Directory)
+  @files : Array(String)
 
   def initialize(parent = nil)
     @parent = parent
-    @files = []
-    @directories = {}
+    @files = Array(String).new
+    @directories = Hash(String, Directory).new
   end
 
-  attr_reader  :files, :directories
+  getter  :files, :directories
 
   def parent
     @parent || self
@@ -14,7 +17,7 @@ class Directory
 
   def size
     return filesizes if directories.empty?
-    directories.values.map(&:size).sum + filesizes
+    directories.values.map{|el| el.size}.sum + filesizes
   end
 
   def add_file(str)
@@ -22,17 +25,18 @@ class Directory
   end
 
   def add_dir(str)
-    @directories.merge! str => Directory.new(self)
+    @directories.merge!({str => Directory.new(self)})
   end
 
   def dir(str)
     @directories[str]
   end
 
-  private
-
-  def filesizes
-    files.map{|f| f.match(/\d+/).to_s.to_i}.sum
+  private def filesizes
+    files.map do |f|
+      m = f.match(/\d+/)
+      m ? m[0].to_i : 0
+    end.sum
   end
 
 end
@@ -43,8 +47,8 @@ end
 def solve(f)
   top_dir = Directory.new
   curr_dir = top_dir
-  small_dirs = []
-  File.readlines(f).each do |line|
+  small_dirs = Array(Int32).new
+  File.read_lines(f).each do |line|
     case line
 
     when /\$ cd \.\./
@@ -71,7 +75,7 @@ end
 def total_used_space(f)
   top_dir = Directory.new
   curr_dir = top_dir
-  File.readlines(f).each do |line|
+  File.read_lines(f).each do |line|
     case line
 
     when /\$ cd \.\./
@@ -98,8 +102,8 @@ end
 def solve_pt2(f)
   top_dir = Directory.new
   curr_dir = top_dir
-  big_dirs = []
-  File.readlines(f).each do |line|
+  big_dirs = Array(Int32).new
+  File.read_lines(f).each do |line|
     case line
 
     when /\$ cd \.\./
@@ -126,10 +130,10 @@ end
 
 f = "input_7.txt"
 
-t0 = Time.now
+t0 = Time.utc
 solution = solve(f)
-puts "Solved #1 #{solution} in: #{(Time.now - t0)}"
+puts "Solved #1 #{solution} in: #{(Time.utc - t0).to_f}"
 
-t0 = Time.now
+t0 = Time.utc
 solution = solve_pt2(f)
-puts "Solved #2 #{solution} in: #{(Time.now - t0)}"
+puts "Solved #2 #{solution} in: #{(Time.utc - t0).to_f}"
